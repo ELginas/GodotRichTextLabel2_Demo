@@ -27,22 +27,22 @@ signal hold_finished()
 
 enum {
 	TRIG_NONE = 1000, # Offset because it's built on the enum of the RicherTextLabel class.
-	TRIG_WAIT,	## [wait] or [w]: Delays animation for a time.
-	TRIG_PACE,	## [pace] or [p]: Changes the animation speed.
-	TRIG_HOLD,	## [hold] or [h]: Hold until player pressed advance.
-	TRIG_SKIP_STARTED,	## [skip] For displaying a chunk of text at once.
-	TRIG_SKIP_FINISHED,	## [] End of skip.
-	TRIG_EXPRESSION,	## [$expression]
-	TRIG_BOOKMARK,		## [#bookmark]
-	TRIG_QUOTE_STARTED,	## Quote has started.
-	TRIG_QUOTE_FINISHED,## Quote has ended.
-	TRIG_STARS_STARTED,		## * started
-	TRIG_STARS_FINISHED,	## * ended
+	TRIG_WAIT, ## [wait] or [w]: Delays animation for a time.
+	TRIG_PACE, ## [pace] or [p]: Changes the animation speed.
+	TRIG_HOLD, ## [hold] or [h]: Hold until player pressed advance.
+	TRIG_SKIP_STARTED, ## [skip] For displaying a chunk of text at once.
+	TRIG_SKIP_FINISHED, ## [] End of skip.
+	TRIG_EXPRESSION, ## [$expression]
+	TRIG_BOOKMARK, ## [#bookmark]
+	TRIG_QUOTE_STARTED, ## Quote has started.
+	TRIG_QUOTE_FINISHED, ## Quote has ended.
+	TRIG_STARS_STARTED, ## * started
+	TRIG_STARS_FINISHED, ## * ended
 }
 
 enum Style {
-	LETTER,	## Fade per letter.
-	WORD	## Fade per word.
+	LETTER, ## Fade per letter.
+	WORD ## Fade per word.
 }
 
 ## Animation to play.
@@ -71,7 +71,7 @@ enum Style {
 ## This should be very fast so the user isn't bored.
 @export var fade_out_speed := 120.0
 ## Current state of animation. Manually tweaking is meant for in editor, otherwise you should be calling advance().
-@export_range(0.0, 1.0) var progress := 0.0: set=set_progress
+@export_range(0.0, 1.0) var progress := 0.0: set = set_progress
 ## Current character that is fully visible.
 @export_storage var visible_character := -1
 ## Used internally by animation effects.
@@ -161,8 +161,8 @@ func _set_bbcode():
 func get_wait_delta() -> float:
 	return 0.0 if _wait_max == 0.0 else 1.0 - (_wait / _wait_max)
 
-## Animation played all the way through.
-func is_finished() -> bool:
+# Animation played all the way through.
+func is_anim_finished() -> bool:
 	return progress == 0 if fade_out else progress == 1.0
 
 ## Waiting for a timer.
@@ -171,11 +171,11 @@ func is_waiting() -> bool:
 
 ## Waiting for user to advance().
 func is_holding() -> bool:
-	return not _play and not is_finished()
+	return not _play and not is_anim_finished()
 
 ## User should call this to advance the animation if it is paused.
 func advance():
-	if is_finished():
+	if is_anim_finished():
 		return
 	elif is_waiting():
 		_wait = 0.0
@@ -192,7 +192,7 @@ func advance():
 		_continued()
 	else:
 		# Check if there are more triggers ahead.
-		for i in range(visible_character+1, get_total_character_count()):
+		for i in range(visible_character + 1, get_total_character_count()):
 			if i in _triggers:
 				# Fast forward to next trigger.
 				progress += i / float(get_total_character_count())
@@ -324,10 +324,10 @@ func _trigger(type: int, data: Variant):
 		TRIG_QUOTE_FINISHED: on_quote_finished.emit()
 		TRIG_STARS_STARTED: on_stars_started.emit(data)
 		TRIG_STARS_FINISHED: on_stars_finished.emit()
-		_: push_warning("UNKOWN TRIGGER")
+		_: push_warning("UNKNOWN TRIGGER")
 
 func _register_trigger(type: int, data = null) -> bool:
-	var at := get_total_character_count()-1
+	var at := get_total_character_count() - 1
 	var tr = [type, data]
 	
 	if not at in _triggers:
@@ -337,7 +337,7 @@ func _register_trigger(type: int, data = null) -> bool:
 	
 	return true
 
-func set_progress(p:float):
+func set_progress(p: float):
 	var last_progress := progress
 	var last_visible_character := visible_character
 	
@@ -350,7 +350,6 @@ func set_progress(p:float):
 	# Going forward? Emit signal and pop triggers.
 	if last_visible_character < next_visible_character:
 		for i in range(last_visible_character, next_visible_character):
-			
 			if i in _triggers:
 				for t in _triggers[i]:
 					if _wait > 0.0:
@@ -360,8 +359,8 @@ func set_progress(p:float):
 						_trigger(t[0], t[1])
 				
 				if is_waiting():
-					next_progress = (i+1) / float(len(_alpha))
-					next_visible_character = (i+1)
+					next_progress = (i + 1) / float(len(_alpha))
+					next_visible_character = (i + 1)
 					break
 			
 			if is_waiting():
@@ -445,7 +444,7 @@ func _process(delta: float) -> void:
 				var t := 1.0 / float(len(_alpha))
 				progress += delta * t * play_speed * _pace
 
-func _get_character_alpha(index:int) -> float:
+func _get_character_alpha(index: int) -> float:
 	if index < 0 or index >= len(_alpha):
 		return 1.0
 	return _alpha[index]
@@ -455,4 +454,4 @@ func _get_property_list() -> Array[Dictionary]:
 	for file in DirAccess.get_files_at(DIR_TEXT_TRANSITIONS):
 		if file.begins_with("RTE_") and file.ends_with(".gd"):
 			animations.append(file.get_basename().trim_prefix("RTE_"))
-	return [{name="animation", type=TYPE_STRING, hint=PROPERTY_HINT_ENUM, hint_string=",".join(animations)}]
+	return [{name = "animation", type = TYPE_STRING, hint = PROPERTY_HINT_ENUM, hint_string = ",".join(animations)}]

@@ -48,7 +48,7 @@ signal internal_right_pressed(variant: Variant)
 signal pressed(variant: Variant)
 signal right_pressed(variant: Variant)
 
-func _get_property_list():
+func _get_property_list() -> Array[Dictionary]:
 	var fonts := "," + ",".join(FontHelper.get_font_paths({}).keys())
 	return [
 		{
